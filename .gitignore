@@ -48,3 +48,4 @@ Temporary Items
 
 # config.py file to avoid problems between development and production environments
 117-sms/marketing_notifications_python/config.py
+117-sms/venv/
