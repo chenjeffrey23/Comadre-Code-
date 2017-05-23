@@ -63,6 +63,8 @@ def construct_view_blueprint(app, db):
                             for subage in subages:
                                 if subage == age:
                                     subscribers.append(subs)
+            else:
+                subscribers = temp1
 
             #temp2 = Subscriber.query.filter(Subscriber.age == form.childAge.data).all()
             #stemp2 = set(temp2)
