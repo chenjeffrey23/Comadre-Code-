@@ -1,0 +1,96 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-offset-2 col-lg-8">
+        <h2>Comadre SMS System</h2>
+
+        <p>Use this form to send SMS notifications to any subscribers.</p>
+        <br>
+        
+        <!-- <form method="POST" class="form-horizontal" role="form"> /-->
+        <form  action="" method="post" role="form">
+         {{ form.csrf_token }}
+            
+            <div class="form-group">
+                <div>
+                <label for="zipCode"> Zip Code </label>
+                <select class="form-control" id="zipCode" name="zipCode" multiple>
+                    <option> All </option>
+                    <option> 92606 </option>
+                    <option> 92612 </option>
+                    <option> 92614 </option>
+                    <option> 92617 </option>
+                    <option> 92618 </option>
+                    <option> 92626 </option>
+                    <option> 92627 </option>
+                    <option> 92704 </option>
+                    <option> 92805 </option>
+                    <option> 92780 </option>
+                    <option> 92782 </option>
+                    <option> 92801 </option>
+                    <option> 92805 </option>
+                    <option> 92807 </option>
+                    <option> 92808 </option>
+                    <option> 92877 </option>
+                </select>
+                </div>
+                <br>
+                
+                <div>
+                    <label for="zipCode"> Interests </label>
+                    <select class="form-control" id="interest" name="interest" multiple>
+                        <option> All </option>
+                        <option> Science/Tech </option>
+                        <option> Arts </option>
+                        <option> Sports </option>
+                        
+                    </select>
+                    <br>
+                </div>
+                
+                <label for="childAge">Child Age</label>
+                <input type="text" class="form-control" id="childAge" name="childAge" placeholder="Please enter child's age(s) separated by comma">
+                
+            </div>
+            
+            <div class="form-group">
+                <br>
+                <label for="language">Language Preference</label>
+                    <br>
+                    <select class="form-control" id="language" name="language">
+                        <option> Spanish </option>
+                        <option> English </option>
+                    </select>
+                    
+                <br>
+                <label for="message">Message</label>
+                <textarea type="text" class="form-control" id="message" placeholder="Enter your message here..." rows="15", cols="60" name="message"></textarea>
+            </div>
+            
+            
+            <button type="submit" class="btn btn-success">Send Message</button>
+        </form>
+        
+        <br>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        
+        {% for message in messages %}
+        {% if "Error" not in message[1]: %}
+        <div class="alert alert-info">
+            <strong>Success! </strong> {{ message[1] }}
+        </div>
+        {% endif %}
+        
+        {% if "Error" in message[1]: %}
+        <div class="alert alert-warning">
+            {{ message[1] }}
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+{% endblock %}
