@@ -49,3 +49,8 @@ Temporary Items
 # config.py file to avoid problems between development and production environments
 117-sms/marketing_notifications_python/config.py
 117-sms/venv/
+117-sms/.coverage
+117-sms/comadre_uwsgi.ini
+117-sms/*.sock
+117-sms/wsgi.py
+dml_comadre_dev.db

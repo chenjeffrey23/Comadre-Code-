@@ -44,7 +44,7 @@ def construct_view_blueprint(app, db):
                 else:
                     temp1.update(Subscriber.query.filter(Subscriber.subscribed).all())
             if (form.language.data)== "Spanish":
-                temp1.intersection.update(Subscriber.query.filter(Subscriber.spanish).all())
+                temp1.intersection_update(Subscriber.query.filter(Subscriber.spanish).all())
             for i in (form.interest.data):
                 if i == "All":
                     temp1.intersection_update(Subscriber.query.filter(Subscriber.interests == 4).all())
@@ -90,7 +90,7 @@ def construct_view_blueprint(app, db):
             subscriber = Subscriber(phone_number=request.form['From'])
             db.session.add(subscriber)
             db.session.commit()
-            output = "Thanks for contacting Comadre! Text 'subscribe' if you would like to receive updates via text message in English. Texto 'inscribe' si desea recibir actualizaciones por mensaje de texto en espanol."
+            output = "Thanks for contacting us! Text 'subscribe' if you would like to receive updates via text message in English. Texto 'inscribe' si desea recibir actualizaciones por mensaje de texto en espanol."
 
         elif not subscriber.subscribed:
             output = _process_message(request.form['Body'], subscriber)
@@ -135,7 +135,7 @@ def construct_view_blueprint(app, db):
             subscriber.spanish = False;
             
             if subscriber.subscribed:
-                output = "Thanks for signing up for the parent test message service. Please reply with your ZIP code."
+                output = "Thanks for signing up for the parent text message service. Please reply with your ZIP code."
             else:
                 output = "You have unsubscribed from notifications. Text 'subscribe' to start receiving updates again"
 
