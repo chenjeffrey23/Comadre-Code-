@@ -1,0 +1,159 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-offset-2 col-lg-8">
+        <h2>Comadre SMS System</h2>
+
+        <p>Use this form to send SMS notifications to any subscribers.</p>
+        <br>
+        
+        <!-- <form method="POST" class="form-horizontal" role="form"> /-->
+        <form  action="" method="post" role="form">
+         {{ form.csrf_token }}
+            
+            <div class="form-group">
+                <div>
+                <label for="zipCode"> Zip Code </label>
+                <select class="form-control" id="zipCode" name="zipCode" multiple>
+                    <option> All </option>
+                    <option> 92801 </option>
+                    <option> 92802 </option>
+                    <option> 92803</option>
+                    <option>92804 </option>
+                    <option>92805 </option>
+                    <option>92806 </option>
+                    <option>92807 </option>
+                    <option>92808 </option>
+                    <option>92809 </option>
+                    <option>92812 </option>
+                    <option>92814 </option>
+                    <option>92815 </option>
+                    <option>92816 </option>
+                    <option>92817 </option>
+                    <option>92825 </option>
+                    <option>92899 </option>
+                    <option>92780 </option>
+                    <option>92781 </option>
+                    <option>92782 </option>
+                    <option>92701 </option>
+                    <option>92702 </option>
+                    <option>92703 </option>
+                    <option>92704 </option>
+                    <option>92705 </option>
+                    <option>92706 </option>
+                    <option>92707 </option>
+                    <option>92708 </option>
+                    <option>92711 </option>
+                    <option>92712 </option>
+                    <option>92728 </option>
+                    <option>92735 </option>
+                    <option>92799 </option>
+                    <option>92683 </option>
+                    <option>92684 </option>
+                    <option>92685 </option>
+                    <option>92840 </option>
+                    <option>92841 </option>
+                    <option>92842 </option>
+                    <option>92843 </option>
+                    <option>92844 </option>
+                    <option>92845 </option>
+                    <option>92846 </option>
+                    <option>92626 </option>
+                    <option>92627 </option>
+                    <option>92628 </option>
+                    <option>92856 </option>
+                    <option>92857 </option>
+                    <option>92859 </option>
+                    <option>92861 </option>
+                    <option>92862 </option>
+                    <option>92863 </option>
+                    <option>92864 </option>
+                    <option>92865 </option>
+                    <option>92866 </option>
+                    <option>92867 </option>
+                    <option>92868 </option>
+                    <option>92869 </option>
+                    <option>92831 </option>
+                    <option>92832 </option>
+                    <option>92833 </option>
+                    <option>92834 </option>
+                    <option>92835 </option>
+                    <option>92836 </option>
+                    <option>92837 </option>
+                    <option>92838 </option>
+                    <option>90620 </option>
+                    <option>90621 </option>
+                    <option>90622 </option>
+                    <option>90623 </option>
+                    <option>90624 </option>
+                    <option>92708 </option>
+                    <option>92728 </option>
+                    <option>92870 </option>
+                    <option>92871 </option>
+                    <option>92821 </option>
+                    <option>92822 </option>
+                    <option>92823 </option>
+
+                    
+                </select>
+                </div>
+                <br>
+                
+                <div>
+                    <label for="zipCode"> Interests </label>
+                    <select class="form-control" id="interest" name="interest" multiple>
+                        <option> All </option>
+                        <option> Science/Tech </option>
+                        <option> Arts </option>
+                        <option> Sports </option>
+                        
+                    </select>
+                    <br>
+                </div>
+                
+                <label for="childAge">Child Age</label>
+                <input type="text" class="form-control" id="childAge" name="childAge" placeholder="Please enter child's age(s) separated by comma">
+                
+            </div>
+            
+            <div class="form-group">
+                <br>
+                <label for="language">Language Preference</label>
+                    <br>
+                    <select class="form-control" id="language" name="language">
+                        <option> Spanish </option>
+                        <option> English </option>
+                    </select>
+                    
+                <br>
+                <label for="message">Message</label>
+                <textarea type="text" class="form-control" id="message" placeholder="Enter your message here..." rows="15", cols="60" name="message"></textarea>
+            </div>
+            
+            
+            <button type="submit" class="btn btn-success">Send Message</button>
+        </form>
+        
+        <br>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        
+        {% for message in messages %}
+        {% if "Error" not in message[1]: %}
+        <div class="alert alert-info">
+            <strong>Success! </strong> {{ message[1] }}
+        </div>
+        {% endif %}
+        
+        {% if "Error" in message[1]: %}
+        <div class="alert alert-warning">
+            {{ message[1] }}
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+{% endblock %}
