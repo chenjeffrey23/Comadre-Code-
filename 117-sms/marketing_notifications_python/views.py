@@ -151,8 +151,8 @@ def construct_view_blueprint(app, db):
             subscriber.spanish = True;
 
             if subscriber.subscribed:
-                output = "Gracias por inscribe para recibir mensajes de texto para padres! Porfavor responda con " \
-                         "su codigo postal (ZIP)."
+                output = "Gracias por inscribirse para recibir mensajes de texto para padres! Por favor " \
+                         "responda con su codigo postal (ZIP)."
             else:
                 output = "Has cancelado la suscripcion a las notificaciones."
                 Subscriber.query.filter(Subscriber.phone_number == subscriber.phone_number).delete()
@@ -166,7 +166,7 @@ def construct_view_blueprint(app, db):
 
         if message[0].isdigit and len(message) == 5:
             subscriber.zipcode = message
-            output = "Gracias! Porfavor responda con las edad(es) de su/s hijo/a. Separe las edades con un espacio."
+            output = "Gracias! Por favor responda con las edad(es) de su/s hijo/a. Separe las edades con un espacio"
 
         return output
 
@@ -188,8 +188,8 @@ def construct_view_blueprint(app, db):
                          "edad(es) de su/s hijo/a. "
                 return output
         subscriber.age = message
-        output = "Gracias Porfavor responda con las areas que les interesan a su/s hijo/a: 1 ciencia / tecnologia, " \
-                 "2 arte, 3 deportes, 4 todas estas areas!"
+        output = "Gracias! Por favor responda con la area que les interesa a su/s hijo/a: 1 ciencia / tecnologia, 2 " \
+                 "arte, 3 deportes, 4 todas estas areas!"
         return output
 
     def _process_age(message, subscriber):
