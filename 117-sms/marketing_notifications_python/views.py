@@ -5,12 +5,15 @@ from marketing_notifications_python.twilio import init_twilio_module
 from marketing_notifications_python.view_helpers import twiml, view
 from flask import Blueprint
 from marketing_notifications_python.twilio.twilio_services import TwilioServices
-#
 
+# WHEN ADDING SPANISH CHARACTERS I GET in _escape_cdata
+#     return text.encode(encoding, "xmlcharrefreplace")
+# UnicodeDecodeError: 'ascii' codec can't decode byte 0xc3 in position 218: ordinal not in range(128)
+# even with encoding=utf8 at the top of this file
 
 def construct_view_blueprint(app, db):
     SUBSCRIBE_COMMAND = "subscribe"
-    UNSUBSCRIBE_COMMAND = "stop"
+    UNSUBSCRIBE_COMMAND = "finished"
     SUBSCRIBE_COMMAND_SPANISH = "inscribe"
     UNSUBSCRIBE_COMMAND_SPANISH = "alto"
 
@@ -90,16 +93,18 @@ def construct_view_blueprint(app, db):
             subscriber = Subscriber(phone_number=request.form['From'])
             db.session.add(subscriber)
             db.session.commit()
-            output = "Thanks for contacting us! Text 'subscribe' if you would like to receive updates via text message in English. Texto 'inscribe' si desea recibir actualizaciones por mensaje de texto en espanol."
+            output = "Thanks for contacting the UCI parent text message study. Text" \
+                     " 'subscribe' if you would like to receive updates via text message in English. " \
+                     "Texto 'inscribe' si desea recibir actualizaciones por mensaje de texto en español."
 
         elif not subscriber.subscribed:
             output = _process_message(request.form['Body'], subscriber)
             db.session.commit()
 
-
         elif subscriber.zipcode is None and subscriber.spanish:
             output = _process_zip_spanish(request.form['Body'], subscriber)
             db.session.commit()
+
         elif subscriber.zipcode is None and not subscriber.spanish:
             output = _process_zip(request.form['Body'], subscriber)
             db.session.commit()
@@ -112,7 +117,6 @@ def construct_view_blueprint(app, db):
             output = _process_age(request.form['Body'], subscriber)
             db.session.commit()
 
-        
         elif subscriber.interests is None and subscriber.spanish:
             output =  _process_interests_spanish(request.form['Body'], subscriber)
             db.session.commit()
@@ -121,14 +125,17 @@ def construct_view_blueprint(app, db):
             output = _process_interests(request.form['Body'], subscriber)
             db.session.commit()
 
-
+        else:  # trying to fix the unbound local error message that happens after trying to unsubscribe after signup,
+                # this fixes it
+            output = _process_message(request.form['Body'], subscriber)
+            db.session.commit()
 
         twilio_services = TwilioServices()
         return twiml(twilio_services.respond_message(output))
 
     def _process_message(message, subscriber):
-        output = '''Sorry, we don't recognize that command. Available commands are: 'subscribe' or 'stop'.
-                Lo sentimos, no reconocemos ese comando. Los comandos disponibles son: 'inscribe' o 'alto'. '''
+        output = "Sorry, we don't recognize that command. Available commands are: 'subscribe' or 'stop'." \
+                 "Lo sentimos, no reconocemos ese comando. Los comandos disponibles son: 'inscribe' o 'alto'."
 
         if message.lower().startswith(SUBSCRIBE_COMMAND) or message.lower().startswith(UNSUBSCRIBE_COMMAND):
             subscriber.subscribed = message.lower().startswith(SUBSCRIBE_COMMAND)
@@ -137,22 +144,26 @@ def construct_view_blueprint(app, db):
             if subscriber.subscribed:
                 output = "Thanks for signing up for the parent text message service. Please reply with your ZIP code."
             else:
-                output = "You have unsubscribed from notifications. Text 'subscribe' to start receiving updates again"
+                output = "You have unsubscribed from notifications and your data has been deleted."
+                Subscriber.query.filter(Subscriber.phone_number == subscriber.phone_number).delete()
 
         elif message.lower().startswith(SUBSCRIBE_COMMAND_SPANISH) or message.lower().startswith(UNSUBSCRIBE_COMMAND_SPANISH):
             subscriber.subscribed = message.lower().startswith(SUBSCRIBE_COMMAND_SPANISH)
             subscriber.spanish = True;
 
             if subscriber.subscribed:
-                output = "Gracias por inscribe para recibir mensajes de texto para padres! Porfavor responda con su codigo postal (ZIP)."
+                output = "Gracias por inscribe para recibir mensajes de texto para padres! Porfavor responda con " \
+                         "su codigo postal (ZIP)."
             else:
-                output = "Has cancelado la suscripcion a las notificaciones. El texto 'inscribe' para comenzar a recibir actualizaciones de nuevo. "
+                output = "Has cancelado la suscripcion a las notificaciones."
+                Subscriber.query.filter(Subscriber.phone_number == subscriber.phone_number).delete()
 
         return output
 
     def _process_zip_spanish(message, subscriber):
 
-        output = "Lo sentimos, no reconocemos su codigo postal (ZIP). Porfavor vuelve a ingresar su codingo postal (ZIP)."
+        output = "Lo sentimos, no reconocemos su codigo postal (ZIP). Porfavor vuelve a ingresar " \
+                 "su codingo postal (ZIP)."
 
         if message[0].isdigit and len(message) == 5:
             subscriber.zipcode = message
@@ -162,7 +173,7 @@ def construct_view_blueprint(app, db):
 
 
     def _process_zip(message, subscriber):
-        output =  "Sorry, that's an invalid zipcode. Please reenter your zipcode."
+        output = "Sorry, that's an invalid zipcode. Please reenter your zipcode."
 
         if message[0].isdigit() and len(message) == 5:
             subscriber.zipcode = message
@@ -174,10 +185,12 @@ def construct_view_blueprint(app, db):
         ageList = message.strip(" ").split(" ")
         for age in ageList:
             if 0 > age > 18:
-                output = "Lo sentimos, no reconocemos las edad(es) de su/s hijo/a. Porfavor vuelve a ingresar las edad(es) de su/s hijo/a. "
+                output = "Lo sentimos, no reconocemos las edad(es) de su/s hijo/a. Porfavor vuelve a ingresar las " \
+                         "edad(es) de su/s hijo/a. "
                 return output
         subscriber.age = message
-        output = "Gracias Porfavor responda con las areas que les interesan a su/s hijo/a: 1 ciencia / tecnologia, 2  arte, 3  deportes, 4 todas estas areas!"
+        output = "Gracias Porfavor responda con las areas que les interesan a su/s hijo/a: 1 ciencia / tecnologia, " \
+                 "2  arte, 3  deportes, 4 todas estas areas!"
         return output
 
     def _process_age(message, subscriber):
@@ -187,24 +200,30 @@ def construct_view_blueprint(app, db):
                 output = "Sorry, that's an invalid age. Please reenter your child's age."
                 return output
         subscriber.age = message
-        output = "Thanks! Please reply with your child's interests: 1 for science/tech, 2 for arts, 3 for sports, 4 for all."
+        output = "Thanks! Please reply with your child's interests: 1 for science/tech, 2 for arts, " \
+                 "3 for sports, 4 for all."
         return output
 
     def _process_interests_spanish(message, subscriber):
-        output = "Lo sentimos, no reconocemos las areas que les interesan a su/s hijo/a. Porfavor vuelve a ingresar responda con las areas que les interesan a su/s hijo/a."
+        output = "Lo sentimos, no reconocemos las areas que les interesan a su/s hijo/a. Porfavor vuelve a ingresar " \
+                 "responda con las areas que les interesan a su/s hijo/a."
 
         if 0 < int(message) <= 4:
             subscriber.interests = message
-            output = "Felicidades, ya se inscribio! Recibira mensajes semanales con avisos de actividades educativas/enriquecedoras y tambien con consejos para padres. Usted puede responder con alto cuando quiera poner fin a este servicio."
+            output = "Felicidades, ya se inscribio! Recibira mensajes semanales con avisos de actividades " \
+                     "educativas/enriquecedoras y tambien con consejos para padres. Usted puede responder con 'alto' " \
+                     "cuando quiera poner fin a este servicio."
 
         return output
 
     def _process_interests(message, subscriber):
-        output = "Sorry, that's an invalid interest. Please reenter your child's interests: 1 for science/tech, 2 for arts, 3 for sports, 4 for all."
+        output = "Sorry, that's an invalid interest. Please reenter your child's interests: 1 for science/tech, " \
+                 "2 for arts, 3 for sports, 4 for all."
 
-        if  0 < int(message) <= 4:
+        if 0 < int(message) <= 4:
             subscriber.interests = message
-            output = "You're all set. You'll get info a few times per week on out of school learning opportunities and advice. You can reply STOP at any time to stop these messages."
+            output = "You're all set. You'll get info a few times per week on out of school learning opportunities " \
+                     "and advice. Reply 'Finished' at any time to stop these messages and delete your data."
 
         return output
 

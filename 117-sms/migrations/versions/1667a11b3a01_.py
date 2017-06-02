@@ -23,7 +23,7 @@ def upgrade():
     sa.Column('spanish', sa.Boolean(), nullable=True),
     sa.Column('zipcode', sa.Integer(), nullable=True),  # comadre field
     sa.Column('age', sa.String(), nullable=True),  # comadre field
-    sa.Column('interests', sa.Integer(), nullable=True),  # comadre field
+    sa.Column('interests', sa.String(), nullable=True),  # comadre field
     sa.PrimaryKeyConstraint('id')
     )
     ### end Alembic commands ###

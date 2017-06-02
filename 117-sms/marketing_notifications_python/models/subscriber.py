@@ -13,7 +13,7 @@ class Subscriber(db.Model):
     spanish = db.Column(db.Boolean, nullable=True, default=False)
     zipcode = db.Column(db.Integer, nullable=True)
     age = db.Column(db.String, nullable=True)
-    interests = db.Column(db.Integer, nullable=True)
+    interests = db.Column(db.String, nullable=True)
 
 
     def __repr__(self):
