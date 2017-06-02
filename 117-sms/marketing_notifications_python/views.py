@@ -17,7 +17,6 @@ def construct_view_blueprint(app, db):
     SUBSCRIBE_COMMAND_SPANISH = "inscribe"
     UNSUBSCRIBE_COMMAND_SPANISH = "alto"
 
-
     views = Blueprint("views", __name__)
 
     init_twilio_module(app)
@@ -93,9 +92,9 @@ def construct_view_blueprint(app, db):
             subscriber = Subscriber(phone_number=request.form['From'])
             db.session.add(subscriber)
             db.session.commit()
-            output = "Thanks for contacting the UCI parent text message study. Text" \
-                     " 'subscribe' if you would like to receive updates via text message in English. " \
-                     "Texto 'inscribe' si desea recibir actualizaciones por mensaje de texto en español."
+            output = "Thanks for contacting the UCI parent text message study. Text " \
+                     "\"subscribe\" if you would like to receive updates via text message in English. " \
+                     "Texto \"inscribe\" si desea recibir actualizaciones por mensaje de texto en espanol."
 
         elif not subscriber.subscribed:
             output = _process_message(request.form['Body'], subscriber)
@@ -134,8 +133,8 @@ def construct_view_blueprint(app, db):
         return twiml(twilio_services.respond_message(output))
 
     def _process_message(message, subscriber):
-        output = "Sorry, we don't recognize that command. Available commands are: 'subscribe' or 'stop'." \
-                 "Lo sentimos, no reconocemos ese comando. Los comandos disponibles son: 'inscribe' o 'alto'."
+        output = "Sorry, we don't recognize that command. Available commands are: \"subscribe\" or \"finished\". " \
+                 "Lo sentimos, no reconocemos ese comando. Los comandos disponibles son: \"inscribe\" o \"alto\"."
 
         if message.lower().startswith(SUBSCRIBE_COMMAND) or message.lower().startswith(UNSUBSCRIBE_COMMAND):
             subscriber.subscribed = message.lower().startswith(SUBSCRIBE_COMMAND)
@@ -211,7 +210,7 @@ def construct_view_blueprint(app, db):
         if 0 < int(message) <= 4:
             subscriber.interests = message
             output = "Felicidades, ya se inscribio! Recibira mensajes semanales con avisos de actividades " \
-                     "educativas/enriquecedoras y tambien con consejos para padres. Usted puede responder con 'alto' " \
+                     "educativas/enriquecedoras y tambien con consejos para padres. Usted puede responder con \"alto\" " \
                      "cuando quiera poner fin a este servicio."
 
         return output
@@ -223,7 +222,7 @@ def construct_view_blueprint(app, db):
         if 0 < int(message) <= 4:
             subscriber.interests = message
             output = "You're all set. You'll get info a few times per week on out of school learning opportunities " \
-                     "and advice. Reply 'Finished' at any time to stop these messages and delete your data."
+                     "and advice. Reply \"finished\" at any time to stop these messages and delete your data."
 
         return output
 
