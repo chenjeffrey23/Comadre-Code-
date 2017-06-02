@@ -47,17 +47,20 @@ def construct_view_blueprint(app, db):
                     temp1.update(Subscriber.query.filter(Subscriber.subscribed).all())
             if (form.language.data)== "Spanish":
                 temp1.intersection_update(Subscriber.query.filter(Subscriber.spanish).all())
+            temp2=set()
             for i in (form.interest.data):
                 for subs in temp1:
                     if i == "Science/Tech":
                         if "1" in subs.interests:
-                            temp1.add(subs)
+                            temp2.add(subs)
                     elif i == "Arts":
                         if "2" in subs.interests:
-                            temp1.add(subs)
+                            temp2.add(subs)
                     elif i == "Sports":
                         if "3" in subs.interests:
-                            temp1.add(subs)
+                            temp2.add(subs)
+            if len(temp2)>0:
+                temp1.intersection_update(temp2)
             if form.childAge.data != "":
                 ages = (form.childAge.data.split(" "))
                 for age in ages:
@@ -69,6 +72,7 @@ def construct_view_blueprint(app, db):
                                     subscribers.append(subs)
             else:
                 subscribers = temp1
+            subscribers = set(subscribers)
 
             #temp2 = Subscriber.query.filter(Subscriber.age == form.childAge.data).all()
             #stemp2 = set(temp2)
