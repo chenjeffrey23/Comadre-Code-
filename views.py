@@ -59,8 +59,9 @@ def construct_view_blueprint(app, db):
                     elif i == "Sports":
                         if "3" in subs.interests:
                             temp2.add(subs)
-            if len(temp2)>0:
-                temp1.intersection_update(temp2)
+                    else:
+                        temp2 = Subscriber.query.filter(Subscriber.subscribed).all()
+            temp1.intersection_update(temp2)
             if form.childAge.data != "":
                 ages = (form.childAge.data.split(" "))
                 for age in ages:
