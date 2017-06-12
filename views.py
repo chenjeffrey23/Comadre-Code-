@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+# -*- coding: iso-8859-1 -*-
+
+from __future__ import unicode_literals
 from flask import Flask, render_template, flash, request
 from marketing_notifications_python.forms import SendMessageForm
 from marketing_notifications_python.models import init_models_module
@@ -5,11 +9,12 @@ from marketing_notifications_python.twilio import init_twilio_module
 from marketing_notifications_python.view_helpers import twiml, view
 from flask import Blueprint
 from marketing_notifications_python.twilio.twilio_services import TwilioServices
-
+import sqlite3
 # WHEN ADDING SPANISH CHARACTERS I GET in _escape_cdata
 #     return text.encode(encoding, "xmlcharrefreplace")
 # UnicodeDecodeError: 'ascii' codec can't decode byte 0xc3 in position 218: ordinal not in range(128)
 # even with encoding=utf8 at the top of this file
+
 
 def construct_view_blueprint(app, db):
     SUBSCRIBE_COMMAND = "subscribe"
@@ -48,20 +53,21 @@ def construct_view_blueprint(app, db):
             if (form.language.data)== "Spanish":
                 temp1.intersection_update(Subscriber.query.filter(Subscriber.spanish).all())
             temp2=set()
-            for i in (form.interest.data):
-                for subs in temp1:
-                    if i == "Science/Tech":
-                        if "1" in subs.interests:
-                            temp2.add(subs)
-                    elif i == "Arts":
-                        if "2" in subs.interests:
-                            temp2.add(subs)
-                    elif i == "Sports":
-                        if "3" in subs.interests:
-                            temp2.add(subs)
-                    else:
-                        temp2 = Subscriber.query.filter(Subscriber.subscribed).all()
-            temp1.intersection_update(temp2)
+            if len(form.interest.data)>0:
+                for i in (form.interest.data):
+                    for subs in temp1:
+                        if i == "Science/Tech":
+                            if "1" in subs.interests:
+                                temp2.add(subs)
+                        elif i == "Arts":
+                            if "2" in subs.interests:
+                                temp2.add(subs)
+                        elif i == "Sports":
+                            if "3" in subs.interests:
+                                temp2.add(subs)
+                        else:
+                            temp2 = Subscriber.query.filter(Subscriber.subscribed).all()
+                temp1.intersection_update(temp2)
             if form.childAge.data != "":
                 ages = (form.childAge.data.split(" "))
                 for age in ages:
@@ -101,7 +107,9 @@ def construct_view_blueprint(app, db):
             db.session.commit()
             output = "Thanks for contacting the UCI parent text message study. Text " \
                      "\"subscribe\" if you would like to receive updates via text message in English. " \
-                     "Texto \"inscribe\" si desea recibir actualizaciones por mensaje de texto en espanol."
+                     "Gracias por contactar el estudio conducido por UCI, el mensaje de texto para los padres. "\
+                     "Responde con un mensaje de texto con la palabra "\
+                     "\"inscribe\" si gustarían recibir notificaciones por mensaje de texto en Español."
 
         elif not subscriber.subscribed:
             output = _process_message(request.form['Body'], subscriber)
@@ -158,10 +166,10 @@ def construct_view_blueprint(app, db):
             subscriber.spanish = True;
 
             if subscriber.subscribed:
-                output = "Gracias por inscribirse para recibir mensajes de texto para padres! Por favor " \
-                         "responda con su codigo postal (ZIP)."
+                output = "Gracias por inscribirte a los mensajes de texto para los padres! Por favor responda  " \
+                         "con su código postal (ZIP)."
             else:
-                output = "Has cancelado la suscripcion a las notificaciones."
+                output = "Has cancelado las suscripción a las notificaciones semanales; sus datos han sido eliminados."
                 Subscriber.query.filter(Subscriber.phone_number == subscriber.phone_number).delete()
 
         return output
@@ -173,7 +181,7 @@ def construct_view_blueprint(app, db):
 
         if message[0].isdigit and len(message) == 5:
             subscriber.zipcode = message
-            output = "Gracias! Por favor responda con las edad(es) de su/s hijo/a. Separe las edades con un espacio"
+            output = "Gracias! Por favor responda con la edad de sus hijos. Separe las edades con un espacio."
 
         return output
 
@@ -189,21 +197,28 @@ def construct_view_blueprint(app, db):
 
     def _process_age_spanish(message, subscriber):
         ageList = message.strip(" ").split(" ")
+        output = "Lo sentimos, no reconocemos las edad(es) de su/s hijo/a. Porfavor vuelve a ingresar las " \
+                 "edad(es) de su/s hijo/a. "
         for age in ageList:
-            if 0 > age > 18:
-                output = "Lo sentimos, no reconocemos las edad(es) de su/s hijo/a. Porfavor vuelve a ingresar las " \
-                         "edad(es) de su/s hijo/a. "
+            try:
+                if 0 > int(age) > 18:
+                    return output
+            except:
                 return output
         subscriber.age = message
-        output = "Gracias! Por favor responda con la area que les interesa a su/s hijo/a: 1 ciencia / tecnologia, 2 " \
-                 "arte, 3 deportes, 4 todas estas areas!"
+        output = "Gracias! Por favor indique las áreas de interés de sus hijos:" \
+                 "1 para Ciencia/tecnología, 2 para Arte, 3 para Deportes, 4 para todas estas áreas. "\
+                 "Si existen multiples areas de interes, por favor sepáralas con un espacio.  "
         return output
 
     def _process_age(message, subscriber):
         ageList = message.strip(" ").split(" ")
+        output = "Sorry, that's an invalid age. Please reenter your child's age."
         for age in ageList:
-            if 0 > age > 18:
-                output = "Sorry, that's an invalid age. Please reenter your child's age."
+            try:
+                if 0 > int(age) > 18:
+                    return output
+            except:
                 return output
         subscriber.age = message
         output = "Thanks! Please reply with your child's interests: 1 for science/tech, 2 for arts, " \
@@ -216,13 +231,15 @@ def construct_view_blueprint(app, db):
 
         interestList = message.strip(" ").split(" ")
         for interest in interestList:
-            if 0 > int(interest) > 4:
+            try:
+                if 0 > int(interest) >4:
+                    return output
+            except:
                 return output
         subscriber.interests = message
-        output = "Felicidades, ya se inscribio! Recibira mensajes semanales con avisos de actividades " \
-                     "educativas/enriquecedoras y tambien con consejos para padres. Usted puede responder " \
-                     "con \"alto\" cuando quiera poner fin a este servicio. Se aplican las tarifas estandar " \
-                     "de mensajeria de texto y datos."
+        output = "Felicidades, ya se inscribió! Recibirá mensajes semanales con avisos de programas o actividades " \
+                 "educativas e informativas. Si en algún momento le gustaría finalizar este servicio, responda con la " \
+                "palabra \"alto\". Se aplican las tarifas estándar de mensajería de texto y datos. "
 
         return output
 
@@ -232,13 +249,48 @@ def construct_view_blueprint(app, db):
 
         interestList = message.strip(" ").split(" ")
         for interest in interestList:
-            if 0 > int(interest) >4:
+            try:
+                if 0 > int(interest) >4:
+                    return output
+            except:
                 return output
-        subscriber.interests = message
-        output = "You're all set. You'll get info a few times per week on out of school learning opportunities " \
+
+        conn = sqlite3.connect('summeropp.db')  # opens DB, DB will be created if it doesn't exist
+        conn.text_factory = str
+        c = conn.cursor()
+        opps = []
+        for row in c.execute('SELECT * FROM summer_opportunities WHERE zipcode = ? LIMIT 3', [subscriber.zipcode]):
+            opps.append(row)
+
+        twilio_services = TwilioServices()
+        if len(opps)>1:
+            firstmessage ="You're all set. You'll get info a few times per week on out of school learning "\
+                        "opportunities and advice. "
+            twilio_services.send_message(subscriber.phone_number, firstmessage)
+            try:
+                for i in opps:
+                    opp = (b + " " + i[1] + " " + i[2] + " " + i[3] + " " + str(i[4]) + " " + i[5] + " " + i[6] + " "
+                           + i[7] + " " + i[8] + " " + i[9] + " " + i[10] + " " + i[11] + " " + i[12] + " " + i[
+                               13] + " " + i[14] + " " + i[15] + " " +
+                           i[16] + " " + i[17] + " " + i[18] + " " + i[19])
+
+                    twilio_services.send_message(subscriber.phone_number, opp)
+                subscriber.interests = message
+                output = "Above are three opportunities to get you started! Reply \"finished\" " \
+                     "at any time to stop these messages and delete your data. " \
+                     "Standard text messaging and data rates apply."
+            except:
+                subscriber.interests = message
+                output = "Reply \"finished\" " \
+                         "at any time to stop these messages and delete your data. " \
+                         "Standard text messaging and data rates apply."
+        else:
+            subscriber.interests = message
+            output = "You're all set. You'll get info a few times per week on out of school learning opportunities "\
                      "and advice. Reply \"finished\" at any time to stop these messages and delete your data. " \
                      "Standard text messaging and data rates apply."
-
+        c.close()
+        conn.close()
         return output
 
     return views
