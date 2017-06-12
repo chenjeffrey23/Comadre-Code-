@@ -236,11 +236,41 @@ def construct_view_blueprint(app, db):
                     return output
             except:
                 return output
-        subscriber.interests = message
-        output = "Felicidades, ya se inscribió! Recibirá mensajes semanales con avisos de programas o actividades " \
+
+        conn = sqlite3.connect('summeropp.db')  # opens DB, DB will be created if it doesn't exist
+        conn.text_factory = str
+        c = conn.cursor()
+        opps = []
+        for row in c.execute('SELECT * FROM summer_opportunities WHERE zipcode = ? LIMIT 3', [subscriber.zipcode]):
+            opps.append(row)
+
+        twilio_services = TwilioServices()
+        if len(opps)>1:
+            firstmessage ="Felicidades, ya se inscribió! Recibirá mensajes semanales con avisos de programas o actividades " \
+                 "educativas e informativas."
+            twilio_services.send_message(subscriber.phone_number, firstmessage)
+            try:
+                for i in opps:
+                    opp = (b + " " + i[1] + " " + i[2] + " " + i[3] + " " + str(i[4]) + " " + i[5] + " " + i[6] + " "
+                           + i[7] + " " + i[8] + " " + i[9] + " " + i[10] + " " + i[11] + " " + i[12] + " " + i[
+                               13] + " " + i[14] + " " + i[15] + " " +
+                           i[16] + " " + i[17] + " " + i[18] + " " + i[19])
+
+                    twilio_services.send_message(subscriber.phone_number, opp)
+                subscriber.interests = message
+                output = "Si en algún momento le gustaría finalizar este servicio, responda con la " \
+                "palabra \"alto\". Se aplican las tarifas estándar de mensajería de texto y datos. "
+            except:
+                subscriber.interests = message
+                output = "Si en algún momento le gustaría finalizar este servicio, responda con la " \
+                "palabra \"alto\". Se aplican las tarifas estándar de mensajería de texto y datos. "
+        else:
+            subscriber.interests = message
+            output = "Felicidades, ya se inscribió! Recibirá mensajes semanales con avisos de programas o actividades " \
                  "educativas e informativas. Si en algún momento le gustaría finalizar este servicio, responda con la " \
                 "palabra \"alto\". Se aplican las tarifas estándar de mensajería de texto y datos. "
-
+        c.close()
+        conn.close()
         return output
 
     def _process_interests(message, subscriber):
