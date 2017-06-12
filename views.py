@@ -251,7 +251,7 @@ def construct_view_blueprint(app, db):
             twilio_services.send_message(subscriber.phone_number, firstmessage)
             try:
                 for i in opps:
-                    opp = (b + " " + i[1] + " " + i[2] + " " + i[3] + " " + str(i[4]) + " " + i[5] + " " + i[6] + " "
+                    opp = (i[0] + " " + i[1] + " " + i[2] + " " + i[3] + " " + str(i[4]) + " " + i[5] + " " + i[6] + " "
                            + i[7] + " " + i[8] + " " + i[9] + " " + i[10] + " " + i[11] + " " + i[12] + " " + i[
                                13] + " " + i[14] + " " + i[15] + " " +
                            i[16] + " " + i[17] + " " + i[18] + " " + i[19])
@@ -299,7 +299,7 @@ def construct_view_blueprint(app, db):
             twilio_services.send_message(subscriber.phone_number, firstmessage)
             try:
                 for i in opps:
-                    opp = (b + " " + i[1] + " " + i[2] + " " + i[3] + " " + str(i[4]) + " " + i[5] + " " + i[6] + " "
+                    opp = (i[0] + " " + i[1] + " " + i[2] + " " + i[3] + " " + str(i[4]) + " " + i[5] + " " + i[6] + " "
                            + i[7] + " " + i[8] + " " + i[9] + " " + i[10] + " " + i[11] + " " + i[12] + " " + i[
                                13] + " " + i[14] + " " + i[15] + " " +
                            i[16] + " " + i[17] + " " + i[18] + " " + i[19])
